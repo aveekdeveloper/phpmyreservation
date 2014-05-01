@@ -7,6 +7,9 @@ ini_set("log_errors", 1);
 $global_mongo_url = parse_url(getenv("MONGO_URL"));
 $global_dbname = str_replace("/", "", $global_mongo_url["path"]);
 
+//App mode
+$global_app_mode = 'LIVE';
+
 // Salt for password encryption. Changing it is recommended. Use 9 random characters
 // This MUST be 9 characters, and must NOT be changed after users have been created
 define('global_salt', 'k4i8pa2m5');
