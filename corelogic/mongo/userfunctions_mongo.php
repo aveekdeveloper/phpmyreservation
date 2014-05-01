@@ -1,55 +1,34 @@
 <?php
 include_once('_includes.php');
 
-
+$users = $db->Users;
+$reservations = $db->Reservations;
 
 // Configuration
 
 function get_configuration($data)
 {
-	$query = mysql_query("SELECT * FROM " . global_mysql_configuration_table)or die('<span class="error_span"><u>MySQL error:</u> ' . htmlspecialchars(mysql_error()) . '</span>');
-	$configuration = mysql_fetch_array($query);
-	return($configuration[$data]);
+	
 }
 
 // Get attribute function
 
-function get_user_attribute($attribute , $venue_id)
+function get_user_attribute($attribute , $_id)
 {
-	$query_statement = "SELECT $attribute from " .global_mysql_users_table. " WHERE id = $venue_id";
+	global $users;
 	
-	$result = mysql_query($query_statement)or die('<span class="error_span"><u>MySQL error:</u> ' . htmlspecialchars(mysql_error()) . '</span>');
-	
-	if(mysql_num_rows($result) < 1)
-	{
-		return('<span class="error_span">No results obtained please modify your search query</span>');
-	}
-	
-	$venue = mysql_fetch_array($result);
-	
-	return $venue[$attribute];
-}
-
-// User validation
-
-function user_name_exists($user_name)
-{
-	$query = mysql_query("SELECT * FROM " . global_mysql_users_table . " WHERE user_name='$user_name'")or die('<span class="error_span"><u>MySQL error:</u> ' . htmlspecialchars(mysql_error()) . '</span>');
-
-	if(mysql_num_rows($query) > 0)
-	{
-		return(true);
-	}
+	$user = $users->findOne( array('_id' => $_id) );
+		
+	return $user[$attribute];
 }
 
 function user_email_exists($user_email)
 {
-	$query = mysql_query("SELECT * FROM " . global_mysql_users_table . " WHERE user_email='$user_email'")or die('<span class="error_span"><u>MySQL error:</u> ' . htmlspecialchars(mysql_error()) . '</span>');
+	$userQuery = array('user_email' => $user_email);
+	
+	global $users;
 
-	if(mysql_num_rows($query) > 0)
-	{
-		return(true);
-	}
+	return $users->count($userQuery);
 }
 
 // User Login
@@ -68,30 +47,37 @@ function get_login_data($data)
 
 function login($user_email, $user_password, $user_remember)
 {
-	logout();
+	//logout();
+	if(isset($_SESSION['logged_in']))
+	{
+		return 1;
+	}
+	
+	global $users;
 	
 	$user_password_encrypted = encrypt_password($user_password);
 	$user_password = add_salt($user_password);
 	
-	$query = mysql_query("SELECT * FROM " . global_mysql_users_table . " WHERE user_email='$user_email' AND user_password='$user_password_encrypted' OR user_email='$user_email' AND user_password='$user_password'")or die('<span class="error_span"><u>MySQL error:</u> ' . htmlspecialchars(mysql_error()) . '</span>');
+	$userQuery = array('User_email' => $user_email , 'User_password' => $user_password_encrypted);
+	
+	$count = $users->count($userQuery);
 
-	if(mysql_num_rows($query) == 1)
+	if($count == 1)
 	{
-			$user = mysql_fetch_array($query);
+			$user = $users->findOne(array('User_email' => $user_email));
 
-			$_SESSION['user_id'] = $user['user_id'];
-			$_SESSION['user_is_admin'] = $user['user_is_admin'];
-			$_SESSION['user_email'] = $user['user_email'];
-			$_SESSION['user_name'] = $user['user_name'];
-			$_SESSION['user_reservation_reminder'] = $user['user_reservation_reminder'];
+			$_SESSION['user_id'] = $user['_id'];
+			$_SESSION['user_is_admin'] = 1;
+			$_SESSION['user_email'] = $user['User_email'];
+			$_SESSION['user_name'] = $user['User_name'];
 			$_SESSION['logged_in'] = '1';
-
+			
 			if($user_remember == '1')
 			{
-				$user_password = strip_salt($user['user_password']);
+				$user_password = strip_salt($user['User_password']);
 
 				setcookie(global_cookie_prefix . '_user_email', $user['user_email'], time() + 3600 * 24 * intval(global_remember_login_days));
-				setcookie(global_cookie_prefix . '_user_password', $user_password, time() + 3600 * 24 * intval(global_remember_login_days));
+				//setcookie(global_cookie_prefix . '_user_password', $user_password_encrypted, time() + 3600 * 24 * intval(global_remember_login_days));
 			}
 
 			return(1);
@@ -120,22 +106,15 @@ function check_login()
 
 function check_user_login()
 {	
-	if(!isset($_SESSION['logged_in']) || isset($_SESSION['logged_in_as_playground']))
+	if(isset($_SESSION['logged_in']) )
 	{
-		return false;
+		if(isset($_SESSION['logged_in_as_playground']) )
+		{
+			return false;
+		}
+		return true;
 	}
-	$user_id = $_SESSION['user_id'];
-	$query = mysql_query("SELECT * FROM " . global_mysql_users_table . " WHERE user_id='$user_id'")or die('<span class="error_span"><u>MySQL error:</u> ' . htmlspecialchars(mysql_error()) . '</span>');
-
-	if(mysql_num_rows($query) == 1)
-	{
-		return(true);
-	}
-	else
-	{
-		logout();
-		echo '<script type="text/javascript">window.location.replace(\'.\');</script>';
-	}
+	return false;
 }
 
 function logout()
@@ -149,21 +128,13 @@ function logout()
 
 function create_user($user_name, $user_email, $user_password, $user_secret_code)
 {
-	if(validate_user_name($user_name) != true)
-	{
-		return('<span class="error_span">Name must be <u>letters only</u> and be <u>2 to 12 letters long</u>. If your name is longer, use a short version of your name</span>');
-	}
-	elseif(validate_email($user_email) != true)
+	if(validate_email($user_email) != true)
 	{
 		return('<span class="error_span">Email must be a valid email address and be no more than 50 characters long</span>');
 	}
 	elseif(validate_user_password($user_password) != true)
 	{
 		return('<span class="error_span">Password must be at least 4 characters</span>');
-	}
-	elseif(global_secret_code != '0' && $user_secret_code != global_secret_code)
-	{
-		return('<span class="error_span">Wrong secret code</span>');
 	}
 	elseif(user_name_exists($user_name) == true)
 	{
@@ -175,20 +146,13 @@ function create_user($user_name, $user_email, $user_password, $user_secret_code)
 	}
 	else
 	{
-		$query = mysql_query("SELECT * FROM " . global_mysql_users_table . "")or die('<span class="error_span"><u>MySQL error:</u> ' . htmlspecialchars(mysql_error()) . '</span>');
+		$user = array(
+			"User_name" => $user_name, 
+			"User_email" => $user_email,
+			"User_password" => encrypt_password($user_password)
+			);
 
-		if(mysql_num_rows($query) == 0)
-		{
-			$user_is_admin = '1';
-		}
-		else
-		{
-			$user_is_admin = '0';
-		}
-
-		$user_password = encrypt_password($user_password);
-
-		mysql_query("INSERT INTO " . global_mysql_users_table . " (user_is_admin,user_email,user_password,user_name,user_reservation_reminder) VALUES ($user_is_admin,'$user_email','$user_password','$user_name','0')")or die('<span class="error_span"><u>MySQL error:</u> ' . htmlspecialchars(mysql_error()) . '</span>');
+		$users->insert($user);
 
 		$user_password = strip_salt($user_password);
 
@@ -321,16 +285,7 @@ function delete_all($data)
 
 function save_system_configuration($price)
 {
-	if(validate_price($price) != true)
-	{
-		return('<span class="error_span">Price must be a number (use . and not , if you want to use decimals)</span>');
-	}
-	else
-	{
-		mysql_query("UPDATE " . global_mysql_configuration_table . " SET price='$price'")or die('<span class="error_span"><u>MySQL error:</u> ' . htmlspecialchars(mysql_error()) . '</span>');
-	}
-
-	return(1);
+	
 }
 
 // User control panel
