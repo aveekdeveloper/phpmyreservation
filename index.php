@@ -1,4 +1,4 @@
-<?php //include_once('main.php'); ?>
+<?php include_once('main.php'); ?>
 
 <!DOCTYPE html>
 
