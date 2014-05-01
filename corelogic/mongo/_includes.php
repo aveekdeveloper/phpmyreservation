@@ -1,10 +1,10 @@
 <?php
 
 // MongoDB
-$connection = new MongoClient(global_mongodb_database);
+$connection = new MongoClient($global_mongo_url);
 
 try{
-$db = $connection->heroku_app24497420;   //playgroundreservation is the name of the database
+$db = $connection->$global_dbname;   
 }catch(MongoException $e)
 {
   echo "Could not connect to database";

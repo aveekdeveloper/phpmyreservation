@@ -11,18 +11,6 @@ define('global_project_website', 'localhost');
 include_once('config.php');
 include_once('corelogic/_includes.php');
 
-// MySQL
-
-mysql_connect(global_mysql_server, global_mysql_user, global_mysql_password)or die('<span class="error_span"><u>MySQL error:</u> ' . htmlspecialchars(mysql_error()) . '</span>');
-mysql_select_db(global_mysql_database)or die('<span class="error_span"><u>MySQL error:</u> ' . htmlspecialchars(mysql_error()) . '</span>');
-mysql_set_charset('utf8');
-
-define('global_mysql_configuration_table', 'phpmyreservation_configuration');
-define('global_mysql_users_table', 'phpmyreservation_users');
-define('global_mysql_playgrounds_table', 'phpmyreservation_playgrounds');
-define('global_mysql_reservations_table', 'phpmyreservation_reservations');
-define('global_mysql_venues_table', 'phpmyreservation_venues');
-
 // Cookies
 
 define('global_cookie_prefix', 'phpmyreservation');

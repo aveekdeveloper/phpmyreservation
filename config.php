@@ -1,13 +1,13 @@
 <?php
 
-### IF YOU ARE GOING TO USE THE CHARACTER ' IN ANY OF THE OPTIONS, ESCAPE IT LIKE THIS: \' ###
+// MongoDB details
 
-// MySQL details
-define('global_mysql_server', 'localhost');
-define('global_mysql_user', 'demo');
-define('global_mysql_password', '');
-define('global_mysql_database', 'test');
-define('global_mongodb_database', 'mongodb://admin:admin@ds043987.mongolab.com:43987/playgroundreservation');
+//Live mode details
+$global_mongo_url = parse_url(getenv("MONGO_URL"));
+$global_dbname = str_replace("/", "", $global_mongo_url["path"]);
+
+//define('global_mongodb_connection', $mongo_url);
+//define('global_mongodb_database',$dbname);
 
 // Salt for password encryption. Changing it is recommended. Use 9 random characters
 // This MUST be 9 characters, and must NOT be changed after users have been created
@@ -55,7 +55,8 @@ define('global_weeks_forward', '4');
 //Global time zone
 define('global_time_zone' , 'Asia/Kolkata');
 
-// Possible reservation times. Use the same syntax as below (TimeFrom-TimeTo)
-$global_times = array('09-10', '10-11', '11-12', '12-13', '13-14', '14-15', '15-16', '16-17', '17-18', '18-19', '19-20', '20-21');
+if (file_exists(dirname(__FILE__) . '/local.config.php')) {
+  include dirname(__FILE__) . '/local.config.php';
+}
 
 ?>
