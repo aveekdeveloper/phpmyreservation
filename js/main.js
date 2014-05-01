@@ -1292,6 +1292,7 @@ $(document).ready( function()
 	$(document).on('click', '#previous_week_a', function() { showweek('previous'); return false; });
 	$(document).on('click', '#next_week_a', function() { showweek('next'); return false; });
 	$(document).on('click', '#venue_check_reservation', function() { showreservations(); return false; });
+	$(document).on('click', '#add_new_venue', function() { $("#new_venue_div").toggle();; return false; });
 
 	// Divisions
 	$(document).on('mouseout', '.reservation_time_cell_div', function() { read_reservation_details(); });

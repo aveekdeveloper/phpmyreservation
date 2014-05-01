@@ -1,13 +1,11 @@
 <?php
+//Set logging 
+ini_set("log_errors", 1);
 
 // MongoDB details
-
 //Live mode details
 $global_mongo_url = parse_url(getenv("MONGO_URL"));
 $global_dbname = str_replace("/", "", $global_mongo_url["path"]);
-
-//define('global_mongodb_connection', $mongo_url);
-//define('global_mongodb_database',$dbname);
 
 // Salt for password encryption. Changing it is recommended. Use 9 random characters
 // This MUST be 9 characters, and must NOT be changed after users have been created

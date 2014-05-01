@@ -166,6 +166,8 @@ function list_playground_by_id ($id)
 	return $playground;
 }
 
+
+
 //Venue functions
 
 function create_or_update_venue($venue_name, $venue_sports_type, $venue_time_slots, $rate_per_time_slot, $venue_location, $venue_contact_number,$venue_day_off, $venue_id='')
@@ -223,12 +225,12 @@ function list_venues($playground_id = '')
 		$venue = $playground_venues[$i];
 		
 		$venues .= '<tr id="venue_tr_' . $venue['Venue_id'] .'"><td>';
-		$venues .= '<label for="venue_radio_' . $venue['Venue_name'] . '">' . $venue['Venue_name'] .'</label></td><td>';
-		$venues .= '<label for="venue_radio_' . $venue['Venue_sports_type'] . '">' . $venue['Venue_sports_type'] .'</label></td><td>';
-		$venues .= '<label for="venue_radio_' . $venue['Venue_time_slots'] . '">' . $venue['Venue_time_slots'] .'</label></td><td>';
-		$venues .= '<label for="venue_radio_' . $venue['Venue_rate_per_time_slot'] . '">' . $venue['Venue_rate_per_time_slot'] . '</label></td><td>';
-		$venues .= '<label for="venue_radio_' . $venue['Venue_location'] . '">' . $venue['Venue_location'] .'</label></td><td>';
-		$venues .= '<label for="venue_radio_' . $venue['Venue_contact_number'] . '">' . $venue['Venue_contact_number'] .'</label></td><td>';
+		$venues .=  '<a href="?venue='.$venue['Venue_id'].'">' .$venue['Venue_name'] .'</a></td><td>';
+		$venues .=  $venue['Venue_sports_type'] .'</td><td>';
+		$venues .=  $venue['Venue_time_slots'] .'</td><td>';
+		$venues .=  $venue['Venue_rate_per_time_slot'] . '</td><td>';
+		$venues .=  $venue['Venue_location'] .'</td><td>';
+		$venues .=  $venue['Venue_contact_number'] .'</td><td>';
 		$venues .= '<input type="radio" name="venue_radio" class="venue_radio" id="venue_radio_' . $venue['Venue_id'] . '" value="' . $venue['Venue_id'] . '">';
 		$venues .= '</td></tr>';
 	}
@@ -312,19 +314,36 @@ function list_venue_by_id($id)
 	$venue['Venue_playground_locality'] = $playground['Playground_locality'] ;
 	$venue['Venue_playground_address'] = $playground['Playground_address'] ;
 	
-	/* $venue['Venue_reservations'] = array();
-	
-	foreach($playground['Playground_reservations'] as $reservation)
-	{
-		array_push($venue['Venue_reservations'] , $reservation);
-	} */
-	
 	$_SESSION['venue'] = $venue; 
 	
 	return($venue);
 }
 
+function delete_venue_data($venue_id , $data)
+{
+	global $playgrounds;
+	
+	$playground_id = $_SESSION['user_id'];
+	
+	//Check if venue , belongs to logged in playground
+	$query = array('_id'=>$playground_id , 'Playground_venues.Venue_id' =>$venue_id );
+	
+	$count=$playgrounds->count($query);
 
+	if($count < 1)
+	{
+		return('<span class="error_span">You have not added any venues. Add one below.</span>');
+	}
+
+	$playgrounds->update($query , array('$pull' => 
+											array(
+													'Playground_venues' => array('Venue_id' => $venue_id)
+											 	)
+										)
+						);
+
+	return(1);
+}
 
 // Reservations
 
@@ -457,29 +476,7 @@ function read_reservation_from_database($venue_id, $week, $day, $time)
 function read_reservation_details($venue_id, $week, $day, $time)
 {
 	//Allow this only for the owner of the venue
-	/*
-	if( !isset($_SESSION['logged_in_as_playground']) )
-	{
-		return 0;
-	}
-	$playground_id = $_SESSION['user_id'];
-	if($playground_id  != get_venue_attribute('playground_id', $venue_id))
-	{
-		return 0;
-	}
 	
-	$query = mysql_query("SELECT * FROM " . global_mysql_reservations_table . " WHERE reservation_venue_id='$venue_id'  AND reservation_week='$week' AND reservation_day='$day' AND reservation_time='$time'")or die('<span class="error_span"><u>MySQL error:</u> ' . htmlspecialchars(mysql_error()) . '</span>');
-	$reservation = mysql_fetch_array($query);
-
-	if(empty($reservation))
-	{
-		return(0);	
-	}
-	else
-	{
-		return('<b>Reservation made:</b> ' . $reservation['reservation_made_time'] . '<br><b>User\'s email:</b> ' . $reservation['reservation_user_email']);
-	}
-	*/
 }
 
 function make_temporary_reservation($venue_id, $week, $day, $time ,$user_name, $user_email, $user_phone, $user_id = '')

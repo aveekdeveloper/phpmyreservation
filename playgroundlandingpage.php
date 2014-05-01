@@ -49,7 +49,7 @@ else if(isset($_GET['delete_venue_data']))
 }
 else{
 ?>
-<div class="box_div" id="login_div"><div class="box_top_div"><a href="#">Start</a> &gt; Your venues</div><div class="box_body_div">
+<div class="box_div fat_centred_div" id=""><div class="box_top_div"><a href="#">Start</a> &gt; Your venues</div><div class="box_body_div">
 
 <div id=""><?php echo list_venues(); ?></div>
 
@@ -58,8 +58,8 @@ else{
 <p class="center_p" id="venue_administration_message_p"></p>
 		
 <hr/>
-<h3>Add New Venue</h3>
-	<div id="new_user_div"><div>
+<h3><a href="" id="add_new_venue">Add New Venue</a></h3>
+	<div id="new_venue_div"><div>
 
 	<form action="." id="new_venue_form"><p>
 	

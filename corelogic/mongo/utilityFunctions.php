@@ -5,7 +5,7 @@ include_once('_includes.php');
 
 function random_password()
 {
-	$password = rand('1001', '9999');
+	$password = rand('1001', '9999999');
 	return $password;
 }
 

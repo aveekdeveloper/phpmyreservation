@@ -253,6 +253,24 @@ div#new_user_div div:last-child
 	display: table-cell;
 }
 
+div#new_venue_div
+{
+	display: none;
+	width: 100%;
+}
+
+div#new_venue_div div:first-child
+{
+	display: table-cell;
+	padding-right: 30px;
+}
+
+div#new_venue_div div:last-child
+{
+	display: table-cell;
+}
+
+
 div#user_secret_code_div
 {
 	opacity: 0;
