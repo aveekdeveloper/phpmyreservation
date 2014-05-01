@@ -2,7 +2,14 @@
 
 // MongoDB
 try{
-	$connection = new MongoClient($global_mongo_url);
+	if($global_app_mode === 'DEVELOPMENT')
+	{
+		$connection = new MongoClient($global_mongo_url);
+	}else
+	{
+		$connection = new Mongo($global_mongo_url);
+	}
+	
 }catch(MongoException $e)
 {
   echo "Could not connect to database";
