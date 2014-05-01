@@ -5,13 +5,20 @@
 <a href=".">Home</a> | <a href="#bookings">Booking Information</a>
 
 </div><div id="header_inner_center_div">
+<?php 
 
+if(isset($_SESSION['user_name']))
+{
+	echo 'Welcome, '.$_SESSION['user_name']. ' !';
+}
+
+?>
 </div><div id="header_inner_right_div">
 
 <?php
 
 if(isset($_SESSION['logged_in']))
-{
+{	
 	if(isset($_SESSION['logged_in_as_playground']))
 	{
 		echo '<a href="#dashboard">Dashboard</a>';
