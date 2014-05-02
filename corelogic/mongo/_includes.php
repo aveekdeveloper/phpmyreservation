@@ -12,7 +12,8 @@ try{
 	
 }catch(MongoException $e)
 {
-  echo "Could not connect to database";
+  echo "Could not connect to database\n";
+  echo "Mongo url : ".$global_mongo_url;
   error_log( "Could not connect to database" );
   exit;
 }
