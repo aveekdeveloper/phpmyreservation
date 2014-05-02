@@ -7,8 +7,8 @@ include_once('main.php');
 
 if(isset($_GET['login']))
 {
-	$user_email = mysql_real_escape_string($_POST['user_email']);
-	$user_password = mysql_real_escape_string($_POST['user_password']);
+	$user_email =($_POST['user_email']);
+	$user_password =($_POST['user_password']);
 	$user_remember = $_POST['user_remember'];
 	echo login($user_email, $user_password, $user_remember);
 }
@@ -18,9 +18,9 @@ elseif(isset($_GET['logout']))
 }
 elseif(isset($_GET['create_user']))
 {
-	$user_name = mysql_real_escape_string(trim($_POST['user_name']));
-	$user_email = mysql_real_escape_string($_POST['user_email']);
-	$user_password = mysql_real_escape_string($_POST['user_password']);
+	$user_name =(trim($_POST['user_name']));
+	$user_email =($_POST['user_email']);
+	$user_password =($_POST['user_password']);
 	$user_secret_code = $_POST['user_secret_code'];
 	echo create_user($user_name, $user_email, $user_password, $user_secret_code);
 }

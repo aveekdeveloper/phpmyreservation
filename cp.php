@@ -10,17 +10,17 @@ if($_SESSION['user_is_admin'] == '1' && isset($_GET['list_users']))
 }
 elseif($_SESSION['user_is_admin'] == '1' && isset($_GET['reset_user_password']))
 {
-	$user_id = mysql_real_escape_string($_POST['user_id']);
+	$user_id =($_POST['user_id']);
 	echo reset_user_password($user_id);
 }
 elseif($_SESSION['user_is_admin'] == '1' && isset($_GET['change_user_permissions']))
 {
-	$user_id = mysql_real_escape_string($_POST['user_id']);
+	$user_id =($_POST['user_id']);
 	echo change_user_permissions($user_id);
 }
 elseif($_SESSION['user_is_admin'] == '1' && isset($_GET['delete_user_data']))
 {
-	$user_id = mysql_real_escape_string($_POST['user_id']);
+	$user_id =($_POST['user_id']);
 	$data = $_POST['delete_data'];
 	echo delete_user_data($user_id, $data);
 }
@@ -31,7 +31,7 @@ elseif($_SESSION['user_is_admin'] == '1' && isset($_GET['delete_all']))
 }
 elseif($_SESSION['user_is_admin'] == '1' && isset($_GET['save_system_configuration']))
 {
-	$price = mysql_real_escape_string($_POST['price']);
+	$price =($_POST['price']);
 	echo save_system_configuration($price);
 }
 elseif(isset($_GET['get_usage']))
@@ -48,9 +48,9 @@ elseif(isset($_GET['toggle_reservation_reminder']))
 }
 elseif(isset($_GET['change_user_details']))
 {
-	$user_name = mysql_real_escape_string(trim($_POST['user_name']));
-	$user_email = mysql_real_escape_string($_POST['user_email']);
-	$user_password = mysql_real_escape_string($_POST['user_password']);
+	$user_name =(trim($_POST['user_name']));
+	$user_email =($_POST['user_email']);
+	$user_password =($_POST['user_password']);
 	echo change_user_details($user_name, $user_email, $user_password);
 }
 else

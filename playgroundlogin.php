@@ -7,8 +7,8 @@ if(check_user_login() == true) { exit; }
 
 if(isset($_GET['login']))
 {
-	$playground_email = mysql_real_escape_string($_POST['playground_email']);
-	$playground_password = mysql_real_escape_string($_POST['playground_password']);
+	$playground_email =($_POST['playground_email']);
+	$playground_password =($_POST['playground_password']);
 	$playground_remember = $_POST['playground_remember'];
 	echo playgroundlogin($playground_email, $playground_password, $playground_remember);
 }
@@ -18,11 +18,11 @@ elseif(isset($_GET['logout']))
 }
 elseif(isset($_GET['create_playground']))
 {
-	$playground_name = mysql_real_escape_string(trim($_POST['playground_name']));
-	$playground_email = mysql_real_escape_string($_POST['playground_email']);
-	$playground_password = mysql_real_escape_string($_POST['playground_password']);
-	$locality_input = mysql_real_escape_string($_POST['locality_input']);
-	$address_input = mysql_real_escape_string($_POST['address_input']);
+	$playground_name =(trim($_POST['playground_name']));
+	$playground_email =($_POST['playground_email']);
+	$playground_password =($_POST['playground_password']);
+	$locality_input =($_POST['locality_input']);
+	$address_input =($_POST['address_input']);
 	$playground_secret_code = $_POST['playground_secret_code'];
 	echo create_playground($playground_name, $playground_email, $playground_password, $locality_input,$address_input, $playground_secret_code);
 }

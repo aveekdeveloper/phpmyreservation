@@ -3,14 +3,14 @@ include_once('main.php');
 
 if(isset($_GET['search_venue']))
 {
-	$venue = mysql_real_escape_string(trim($_GET['venue_name']));
+	$venue =(trim($_GET['venue_name']));
 	
 	echo list_playgrounds_and_venues_by_name($venue);
 } 
 else if(isset($_GET['search']))
 {
-	$sports_type = isset($_GET['sports_type']) ? mysql_real_escape_string(trim($_GET['sports_type'])) : '';
-	$location = isset($_GET['location']) ? mysql_real_escape_string(trim($_GET['location'])) : '';
+	$sports_type = isset($_GET['sports_type']) ?(trim($_GET['sports_type'])) : '';
+	$location = isset($_GET['location']) ?(trim($_GET['location'])) : '';
 	
 	$venues = list_venues_by_sports_location($sports_type , $location);
 	

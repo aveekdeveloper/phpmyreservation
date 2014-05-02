@@ -20,25 +20,25 @@ if(isset($_GET['venuejson']))
 }
 else if(isset($_GET['create_venue']))
 {
-	$venue_name = mysql_real_escape_string(trim($_POST['venue_name']));
-	$venue_sports_type = mysql_real_escape_string($_POST['venue_sports_type']);
-	$venue_time_slots = mysql_real_escape_string($_POST['venue_time_slots']);
-	$rate_per_time_slot = mysql_real_escape_string($_POST['rate_per_time_slot']);
-	$venue_location = mysql_real_escape_string($_POST['venue_location']);
-	$venue_contact_number = mysql_real_escape_string($_POST['venue_contact_number']);
-	$venue_day_off = mysql_real_escape_string($_POST['venue_day_off']); 
+	$venue_name =(trim($_POST['venue_name']));
+	$venue_sports_type =($_POST['venue_sports_type']);
+	$venue_time_slots =($_POST['venue_time_slots']);
+	$rate_per_time_slot =($_POST['rate_per_time_slot']);
+	$venue_location =($_POST['venue_location']);
+	$venue_contact_number =($_POST['venue_contact_number']);
+	$venue_day_off =($_POST['venue_day_off']); 
 	
 	echo create_or_update_venue($venue_name, $venue_sports_type, $venue_time_slots, $rate_per_time_slot, $venue_location, $venue_contact_number , $venue_day_off);
 }
 else if(isset($_GET['update_venue']))
 {	
 	$venue_id = trim($_POST['venue_id']);
-	$venue_name = mysql_real_escape_string(trim($_POST['venue_name']));
-	$venue_sports_type = mysql_real_escape_string($_POST['venue_sports_type']);
-	$venue_time_slots = mysql_real_escape_string($_POST['venue_time_slots']);
-	$rate_per_time_slot = mysql_real_escape_string($_POST['rate_per_time_slot']);
-	$venue_location = mysql_real_escape_string($_POST['venue_location']);
-	$venue_contact_number = mysql_real_escape_string($_POST['venue_contact_number']);
+	$venue_name =(trim($_POST['venue_name']));
+	$venue_sports_type =($_POST['venue_sports_type']);
+	$venue_time_slots =($_POST['venue_time_slots']);
+	$rate_per_time_slot =($_POST['rate_per_time_slot']);
+	$venue_location =($_POST['venue_location']);
+	$venue_contact_number =($_POST['venue_contact_number']);
 	echo create_or_update_venue($venue_name, $venue_sports_type, $venue_time_slots, $rate_per_time_slot, $venue_location, $venue_contact_number,$venue_id);
 }
 else if(isset($_GET['delete_venue_data']))

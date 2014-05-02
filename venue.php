@@ -3,14 +3,14 @@
  
  if(isset($_GET['getattribute']))
  {
-	$id = mysql_real_escape_string($_GET['id']);
-	$attribute = mysql_real_escape_string($_GET['attribute']);
+	$id =($_GET['id']);
+	$attribute =($_GET['attribute']);
 	echo get_venue_attribute($attribute,$id);
 	return;
  }
  else if(isset($_GET['id']))
  {
-	$id = mysql_real_escape_string($_GET['id']);
+	$id =($_GET['id']);
 	$venue = list_venue_by_id($id);
 	
 	if(empty($venue))

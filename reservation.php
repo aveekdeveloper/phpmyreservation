@@ -6,40 +6,40 @@ include_once('main.php');
 
 if(isset($_GET['make_reservation']))
 {
-	$venue_id = mysql_real_escape_string($_POST['venue_id']);
-	$week = mysql_real_escape_string($_POST['week']);
-	$day = mysql_real_escape_string($_POST['day']);
-	$time = mysql_real_escape_string($_POST['time']);
+	$venue_id =($_POST['venue_id']);
+	$week =($_POST['week']);
+	$day =($_POST['day']);
+	$time =($_POST['time']);
 	echo make_reservation($venue_id, $week, $day, $time);
 }
 elseif(isset($_GET['delete_reservation']))
 {
-	$venue_id = mysql_real_escape_string($_POST['venue_id']);
-	$week = mysql_real_escape_string($_POST['week']);
-	$day = mysql_real_escape_string($_POST['day']);
-	$time = mysql_real_escape_string($_POST['time']);
+	$venue_id =($_POST['venue_id']);
+	$week =($_POST['week']);
+	$day =($_POST['day']);
+	$time =($_POST['time']);
 	echo delete_reservation($venue_id, $week, $day, $time);
 }
 elseif(isset($_GET['read_reservation']))
 {
-	$venue_id = mysql_real_escape_string($_POST['venue_id']);
-	$week = mysql_real_escape_string($_POST['week']);
-	$day = mysql_real_escape_string($_POST['day']);
-	$time = mysql_real_escape_string($_POST['time']);
+	$venue_id =($_POST['venue_id']);
+	$week =($_POST['week']);
+	$day =($_POST['day']);
+	$time =($_POST['time']);
 	echo read_reservation($venue_id,$week, $day, $time);
 }
 elseif(isset($_GET['read_reservation_details']))
 {
-	$venue_id = mysql_real_escape_string($_POST['venue_id']);
-	$week = mysql_real_escape_string($_POST['week']);
-	$day = mysql_real_escape_string($_POST['day']);
-	$time = mysql_real_escape_string($_POST['time']);
+	$venue_id =($_POST['venue_id']);
+	$week =($_POST['week']);
+	$day =($_POST['day']);
+	$time =($_POST['time']);
 	echo read_reservation_details($venue_id, $week, $day, $time);
 }
 elseif(isset($_GET['week']))
 {
-	$week = mysql_real_escape_string($_GET['week']);
-	$venue_id = mysql_real_escape_string($_GET['venue_id']);
+	$week =($_GET['week']);
+	$venue_id =($_GET['venue_id']);
 	
 	$venue_times = explode(';', $_SESSION['venue']['Venue_time_slots']);
 	
