@@ -1,4 +1,7 @@
 <?php
+include_once('_includes.php');
+
+
 
 // Configuration
 
@@ -9,73 +12,22 @@ function get_configuration($data)
 	return($configuration[$data]);
 }
 
-// Password
+// Get attribute function
 
-function random_password()
+function get_user_attribute($attribute , $venue_id)
 {
-	$password = rand('1001', '9999');
-	return $password;
-}
-
-function encrypt_password($password)
-{
-	$password = crypt($password, '$1$' . global_salt);
-	return($password);
-}
-
-function add_salt($password)
-{
-	$password = '$1$' . substr(global_salt, 0, -1) . '$' . $password;
-	return($password);
-}
-
-function strip_salt($password)
-{
-	$password = str_replace('$1$' . substr(global_salt, 0, -1) . '$', '', $password);
-	return($password);	
-}
-
-// String manipulation
-
-function modify_email($email)
-{
-	$email = str_replace('@', '(at)', $email);
-	$email = str_replace('.', '(dot)', $email);
-	return($email);
-}
-
-// String validation
-
-function validate_user_name($user_name)
-{
-	if(preg_match('/^[a-z æøåÆØÅ]{2,12}$/i', $user_name))
+	$query_statement = "SELECT $attribute from " .global_mysql_users_table. " WHERE id = $venue_id";
+	
+	$result = mysql_query($query_statement)or die('<span class="error_span"><u>MySQL error:</u> ' . htmlspecialchars(mysql_error()) . '</span>');
+	
+	if(mysql_num_rows($result) < 1)
 	{
-		return(true);
+		return('<span class="error_span">No results obtained please modify your search query</span>');
 	}
-}
-
-function validate_user_email($user_email)
-{
-	if(filter_var($user_email, FILTER_VALIDATE_EMAIL) && strlen($user_email) < 51)
-	{
-		return(true);
-	}
-}
-
-function validate_user_password($user_password)
-{
-	if(strlen($user_password) > 3 && trim($user_password) != '')
-	{
-		return(true);
-	}
-}
-
-function validate_price($price)
-{
-	if(is_numeric($price))
-	{
-		return(true);
-	}
+	
+	$venue = mysql_fetch_array($result);
+	
+	return $venue[$attribute];
 }
 
 // User validation
@@ -100,7 +52,7 @@ function user_email_exists($user_email)
 	}
 }
 
-// Login
+// User Login
 
 function get_login_data($data)
 {
@@ -116,6 +68,8 @@ function get_login_data($data)
 
 function login($user_email, $user_password, $user_remember)
 {
+	logout();
+	
 	$user_password_encrypted = encrypt_password($user_password);
 	$user_password = add_salt($user_password);
 	
@@ -148,18 +102,34 @@ function check_login()
 {
 	if(isset($_SESSION['logged_in']))
 	{
-		$user_id = $_SESSION['user_id'];
-		$query = mysql_query("SELECT * FROM " . global_mysql_users_table . " WHERE user_id='$user_id'")or die('<span class="error_span"><u>MySQL error:</u> ' . htmlspecialchars(mysql_error()) . '</span>');
-
-		if(mysql_num_rows($query) == 1)
+		if(isset($_SESSION['logged_in_as_playground']))
 		{
-			return(true);
+			return check_playground_login();
 		}
 		else
 		{
-			logout();
-			echo '<script type="text/javascript">window.location.replace(\'.\');</script>';
+			return check_user_login();
 		}
+	}
+	else
+	{	
+		logout();
+		echo '<script type="text/javascript">window.location.replace(\'.\');</script>';
+	}
+}
+
+function check_user_login()
+{	
+	if(!isset($_SESSION['logged_in']) || isset($_SESSION['logged_in_as_playground']))
+	{
+		return false;
+	}
+	$user_id = $_SESSION['user_id'];
+	$query = mysql_query("SELECT * FROM " . global_mysql_users_table . " WHERE user_id='$user_id'")or die('<span class="error_span"><u>MySQL error:</u> ' . htmlspecialchars(mysql_error()) . '</span>');
+
+	if(mysql_num_rows($query) == 1)
+	{
+		return(true);
 	}
 	else
 	{
@@ -173,6 +143,8 @@ function logout()
 	session_unset();
 	setcookie(global_cookie_prefix . '_user_email', '', time() - 3600);
 	setcookie(global_cookie_prefix . '_user_password', '', time() - 3600);
+	setcookie(global_cookie_prefix . '_playground_email', '', time() - 3600);
+	setcookie(global_cookie_prefix . '_playground_password', '', time() - 3600);
 }
 
 function create_user($user_name, $user_email, $user_password, $user_secret_code)
@@ -181,7 +153,7 @@ function create_user($user_name, $user_email, $user_password, $user_secret_code)
 	{
 		return('<span class="error_span">Name must be <u>letters only</u> and be <u>2 to 12 letters long</u>. If your name is longer, use a short version of your name</span>');
 	}
-	elseif(validate_user_email($user_email) != true)
+	elseif(validate_email($user_email) != true)
 	{
 		return('<span class="error_span">Email must be a valid email address and be no more than 50 characters long</span>');
 	}
@@ -251,106 +223,6 @@ function list_admin_users()
 		$return .= '</table>';
 
 		return($return);
-	}
-}
-
-// Reservations
-
-function highlight_day($day)
-{
-	$day = str_ireplace(global_day_name, '<span id="today_span">' . global_day_name . '</span>', $day);
-	return $day;
-}
-
-
-function read_reservation($week, $day, $time)
-{
-	$query = mysql_query("SELECT * FROM " . global_mysql_reservations_table . " WHERE reservation_week='$week' AND reservation_day='$day' AND reservation_time='$time'")or die('<span class="error_span"><u>MySQL error:</u> ' . htmlspecialchars(mysql_error()) . '</span>');
-	$reservation = mysql_fetch_array($query);
-	return($reservation['reservation_user_name']);
-}
-
-function read_reservation_details($week, $day, $time)
-{
-	$query = mysql_query("SELECT * FROM " . global_mysql_reservations_table . " WHERE reservation_week='$week' AND reservation_day='$day' AND reservation_time='$time'")or die('<span class="error_span"><u>MySQL error:</u> ' . htmlspecialchars(mysql_error()) . '</span>');
-	$reservation = mysql_fetch_array($query);
-
-	if(empty($reservation))
-	{
-		return(0);
-		
-	}
-	else
-	{
-		return('<b>Reservation made:</b> ' . $reservation['reservation_made_time'] . '<br><b>User\'s email:</b> ' . $reservation['reservation_user_email']);
-	}
-}
-
-function make_reservation($week, $day, $time)
-{
-	$user_id = $_SESSION['user_id'];
-	$user_email = $_SESSION['user_email'];
-	$user_name = $_SESSION['user_name'];
-	$price = global_price;
-
-	if($week == '0' && $day == '0' && $time == '0')
-	{
-		mysql_query("INSERT INTO " . global_mysql_reservations_table . " (reservation_made_time,reservation_week,reservation_day,reservation_time,reservation_price,reservation_user_id,reservation_user_email,reservation_user_name) VALUES (now(),'$week','$day','$time','$price','$user_id','$user_email','$user_name')")or die('<span class="error_span"><u>MySQL error:</u> ' . htmlspecialchars(mysql_error()) . '</span>');
-
-		return(1);
-	}
-	elseif($week < global_week_number && $_SESSION['user_is_admin'] != '1' || $week == global_week_number && $day < global_day_number && $_SESSION['user_is_admin'] != '1')
-	{
-		return('You can\'t reserve back in time');
-	}
-	elseif($week > global_week_number + global_weeks_forward && $_SESSION['user_is_admin'] != '1')
-	{
-		return('You can only reserve ' . global_weeks_forward . ' weeks forward in time');
-	}
-	else
-	{
-		$query = mysql_query("SELECT * FROM " . global_mysql_reservations_table . " WHERE reservation_week='$week' AND reservation_day='$day' AND reservation_time='$time'")or die('<span class="error_span"><u>MySQL error:</u> ' . htmlspecialchars(mysql_error()) . '</span>');
-
-		if(mysql_num_rows($query) < 1)
-		{
-			$year = global_year;
-
-			mysql_query("INSERT INTO " . global_mysql_reservations_table . " (reservation_made_time,reservation_year,reservation_week,reservation_day,reservation_time,reservation_price,reservation_user_id,reservation_user_email,reservation_user_name) VALUES (now(),'$year','$week','$day','$time','$price','$user_id','$user_email','$user_name')")or die('<span class="error_span"><u>MySQL error:</u> ' . htmlspecialchars(mysql_error()) . '</span>');
-
-			return(1);
-		}
-		else
-		{
-			return('Someone else just reserved this time');
-		}
-	}
-}
-
-function delete_reservation($week, $day, $time)
-{
-	if($week < global_week_number && $_SESSION['user_is_admin'] != '1' || $week == global_week_number && $day < global_day_number && $_SESSION['user_is_admin'] != '1')
-	{
-		return('You can\'t reserve back in time');
-	}
-	elseif($week > global_week_number + global_weeks_forward && $_SESSION['user_is_admin'] != '1')
-	{
-		return('You can only reserve ' . global_weeks_forward . ' weeks forward in time');
-	}
-	else
-	{
-		$query = mysql_query("SELECT * FROM " . global_mysql_reservations_table . " WHERE reservation_week='$week' AND reservation_day='$day' AND reservation_time='$time'")or die('<span class="error_span"><u>MySQL error:</u> ' . htmlspecialchars(mysql_error()) . '</span>');
-		$user = mysql_fetch_array($query);
-
-		if($user['reservation_user_id'] == $_SESSION['user_id'] || $_SESSION['user_is_admin'] == '1')
-		{
-			mysql_query("DELETE FROM " . global_mysql_reservations_table . " WHERE reservation_week='$week' AND reservation_day='$day' AND reservation_time='$time'")or die('<span class="error_span"><u>MySQL error:</u> ' . htmlspecialchars(mysql_error()) . '</span>');
-
-			return(1);
-		}
-		else
-		{
-			return('You can\'t remove other users\' reservations');
-		}
 	}
 }
 
@@ -520,11 +392,11 @@ function change_user_details($user_name, $user_email, $user_password)
 {
 	$user_id = $_SESSION['user_id'];
 
-	if(validate_user_name($user_name) != true)
+	/* if(validate_user_name($user_name) != true)
 	{
 		return('<span class="error_span">Name must be <u>letters only</u> and be <u>2 to 12 letters long</u>. If your name is longer, use a short version of your name</span>');
-	}
-	if(validate_user_email($user_email) != true)
+	} */
+	if(validate_email($user_email) != true)
 	{
 		return('<span class="error_span">Email must be a valid email address and be no more than 50 characters long</span>');
 	}

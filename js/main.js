@@ -1,4 +1,87 @@
+/*
+This file contains the following sections :-
+	1)Show pages
+	2)unique URL functions
+	3)Page load
+	4)Login Logout
+	5)Create resource
+	6)Reservation
+	7)Admin control panel
+	8)User control panel
+	9)Venue
+	10)UI
+	11)Document ready
+	12)Hash change
+	13)Window load
+	14)Settings
+15)Utility
+*/
+
 // Show pages
+
+function showhomepage()
+{
+	showsearchpage();
+}
+
+function showsearchpage()
+{
+	page_load();
+	div_hide('#content_div');
+	$.get('searchpage.php', function(data) 
+	{ 
+		$('#content_div').html(data); 
+		div_fadein('#content_div'); 
+		page_loaded(); 
+	}); 
+}
+
+function showsearch(game_type,location)
+{
+	page_load();
+	div_hide('#content_div');
+	$.get('searchpage.php', function(data) 
+	{ 
+		searchvenue(game_type,location);
+		$('#content_div').html(data); 
+		div_fadein('#content_div'); 
+		page_loaded(); 
+	}); 
+}
+
+function searchvenue(game_type , location)
+{
+	$('#search_results').html("Searching...");
+	
+	$.get('searchpage.php?search' , {sports_type : game_type, location : location} , 
+	function(data) {
+			$('#game_type_input').val(game_type);
+			$('#location_input').val(location);
+			$('#search_results').html(data);			
+		});
+}
+
+function showbookings()
+{
+	page_load();
+	div_hide('#content_div');
+	$.get('checkbookings.php', function(data) { $('#content_div').html(data); div_fadein('#content_div'); page_loaded(); });
+}
+
+function showdashboard()
+{
+	if(typeof session_logged_in != 'undefined')
+	{
+		if(typeof session_logged_in_as_playground != 'undefined')
+		{
+			showplaygroundlandingpage();
+		}
+		else
+		{
+			showreservations();
+		}
+	}
+}
 
 function showabout()
 {
@@ -32,11 +115,44 @@ function showlogin()
 	});
 }
 
+function showplaygroundlogin()
+{
+	page_load();
+	div_hide('#content_div');
+
+	$.get('playgroundlogin.php', function(data)
+	{
+		$('#content_div').html(data); 
+		div_fadein('#content_div');
+		page_loaded();
+
+		var playground_email = $('#playground_email_input').val();
+		var playground_password = $('#playground_password_input').val();
+
+		if(playground_email != '' && playground_password != '')
+		{
+			setTimeout(function() { $('#playground_login_form').submit(); }, 250);
+		}
+		else
+		{
+			input_focus('#playground_email_input');
+		}
+	});
+}
+
 function shownew_user()
 {
 	page_load();
 	div_hide('#content_div');
 	$.get('login.php?new_user', function(data) { $('#content_div').html(data); div_fadein('#content_div'); page_loaded(); input_focus('#user_name_input'); });
+	
+}
+
+function shownew_playground()
+{
+	page_load();
+	div_hide('#content_div');
+	$.get('playgroundlogin.php?new_playground', function(data) { $('#content_div').html(data); div_fadein('#content_div'); page_loaded(); input_focus('#playground_name_input'); });
 	
 }
 
@@ -50,19 +166,57 @@ function showforgot_password()
 
 function showreservations()
 {
-	page_load('reservation');
-	div_hide('#content_div');
+	div_hide('#reservation_result_div');
 
 	$.get('reservation.php', function(data)
 	{
-		$('#content_div').html(data);
-		div_fadein('#content_div');
-
-		$.get('reservation.php?week='+global_week_number, function(data)
+		$('#reservation_result_div').html(data);
+		div_fadein('#reservation_result_div');
+		
+		venue_id = window.venue_id;
+		
+		$.get('reservation.php?week',{'week': global_week_number , 'venue_id' : venue_id}, function(data)
 		{
 			$('#reservation_table_div').html(data).slideDown('slow', function() { setTimeout(function() { div_fadein('#reservation_table_div'); }, 250); });
+			
+			ShowTemporaryReservations();
+			
 			page_loaded();
 		});
+	}); 
+}
+
+function showvenue(id)
+{
+	page_load();
+	div_hide('#content_div');
+	$.get('venue.php',{id : id} , 
+	function(data) 
+	{ 
+		window.venue_id = id;
+		$('#content_div').html(data); 
+		div_fadein('#content_div'); 
+		showreservations();
+		page_loaded(); 		
+	});
+	
+	$.get('venue.php?getattribute',{attribute: 'Venue_name', id : id} , 
+	function(data) 
+	{ 
+		window.sessionStorage.venue_name = data;		
+	});
+}
+
+function showplaygroundlandingpage()
+{
+	page_load();
+	div_hide('#content_div');
+
+	$.get('playgroundlandingpage.php', function(data)
+	{
+		$('#content_div').html(data);
+		div_fadein('#content_div');
+		page_loaded();
 	});
 }
 
@@ -80,7 +234,19 @@ function showweek(week, option)
 	{
 		var week = parseInt(week);
 	}
-
+	
+	if(week < global_week_number)
+	{
+		notify('Sorry , No one can time travel into the past :(', 10);
+		return;
+	}
+	
+	if(week > (global_week_number+global_weeks_forward))
+	{
+		notify('You cannot book beyond '+global_weeks_forward+' weeks', 10);
+		return;
+	}
+	
 	if(isNaN(week))
 	{
 		notify('Invalid week number', 4);
@@ -98,8 +264,10 @@ function showweek(week, option)
 
 		page_load('week');
 		div_hide('#reservation_table_div');
+			
+		venue_id = window.venue_id;
 
-		$.get('reservation.php?week='+week, function(data)
+		$.get('reservation.php?week',{'week': week , 'venue_id' : venue_id}, function(data)
 		{
 			$('#reservation_table_div').html(data);
 			$('#week_number_span').html(week);
@@ -119,6 +287,28 @@ function showweek(week, option)
 	}
 }
 
+function ShowTemporaryReservations()
+{
+	var bookings;
+	try 
+	{
+        bookings = JSON.parse(window.localStorage.bookings);
+    } catch (e) {
+		return '';
+    }
+	
+	for( i=0 ; i < bookings.length ; i++ )
+	{
+		id = "div:"+bookings[i].week+":"+bookings[i].day+":"+bookings[i].time+":"+window.venue_id;
+		
+		//$(id).css("background-color" , "yellow");
+		element = document.getElementById(id);
+		//alert(typeof element);
+		element.style.backgroundColor = "yellow";
+		element.innerHTML = "Selected";
+	}
+}
+
 function showcp()
 {
 	page_load();
@@ -133,7 +323,93 @@ function showhelp()
 	$.get('help.php', function(data) { $('#content_div').html(data); div_fadein('#content_div'); page_loaded(); });
 }
 
+
+//unique URL functions
+
+function setwindowlocation(input)
+{
+	switch(input)
+	{
+		case 'game_type_location' :
+			var game_type = $('#game_type_input').val();
+			var location = $('#location_input').val();
+			loc = '?search' + '=' + game_type +'=' + location;
+			window.location.replace(loc);
+			break;
+		default:
+			window.location.replace('.');
+			break;
+	}
+}
+
 // Page load
+
+function show_hide_booking_div()
+{
+	var bookings;
+	
+	set_booking_div_content();
+	
+	try 
+	{
+        bookings = JSON.parse(window.localStorage.bookings);
+    } catch (e) {
+        $('#booking_div').hide();
+		return;
+    }
+	
+	if(bookings.length < 1)
+	{
+		$('#booking_div').hide();
+		return;
+	}
+	
+	$('#booking_div').show("slow");
+}
+
+function set_booking_div_content()
+{
+	//ISO 8601 week adjustemnt
+	
+	//Get the day of $th Jan of this yeaar
+	day_4th_jan = new Date(global_year, 0, 4).getDay();
+	//Get the shift in days : the ISO 8601's 1st week is the one with the year's first thursday
+	shift = (4 - day_4th_jan);
+	
+	var bookings;
+	try 
+	{
+        bookings = JSON.parse(window.localStorage.bookings);
+    } catch (e) {
+		return '';
+    }
+	
+	var i;
+	var total = 0;
+	var result = "<ul>";
+	for( i=0 ; i < bookings.length ; i++ )
+	{
+		week = parseInt(bookings[i].week);
+		day = parseInt(bookings[i].day);
+		day_number = (week -1)*7 + day + shift;
+		date = new Date(global_year ,0,day_number);
+		result += "<li><b><i>";
+		result += "  " + moment(date).format( "DD-MMM-YYYY")+"</i></b>" ;
+		result += " , " + bookings[i].time;
+		result += " at " + '"' + bookings[i].venue_name + '"';
+		result += " for Rs " + bookings[i].price;
+		result += "</li>";
+		
+		total +=  parseInt(bookings[i].price);
+	}
+	result += "</ul>";
+	
+	
+	$('#booking_div_body').html(result);
+	$('#booking_div_total').html("Total = Rs " + "<b>" + total.toString() +"</b>");
+	
+}
+
 
 function page_load(page)
 {
@@ -145,6 +421,8 @@ function page_load(page)
 			notify('Loading...', 300);
 		}
 	}, 500);
+	
+	show_hide_booking_div();
 
 	// Individual
 	if(page == 'reservation')
@@ -176,8 +454,8 @@ function page_loaded(page)
 	{
 		if(data != global_day_number)
 		{
-			notify('Day have changed. Refreshing...', '300');
-			setTimeout(function() { window.location.replace('.'); }, 2000);
+			//notify('Day have changed. Refreshing...', '300');
+			//setTimeout(function() { window.location.replace('.'); }, 2000);
 		}
 	});
 
@@ -189,7 +467,7 @@ function page_loaded(page)
 		}
 	}, 1000);
 
-	read_reservation_details();
+	//read_reservation_details();
 
 	// Individual
 	if(page == 'about')
@@ -209,7 +487,7 @@ function page_loaded(page)
 	}
 }
 
-// Login
+// Login Logout
 
 function login()
 {
@@ -253,11 +531,56 @@ function login()
 	});
 }
 
+function playgroundlogin()
+{
+	var playground_email = $('#playground_email_input').val();
+	var playground_password = $('#playground_password_input').val();
+
+	$('#login_message_p').html('<img src="img/loading.gif" alt="Loading"> Logging in...').slideDown('fast');
+
+	var remember_me_checkbox = $('#remember_me_checkbox').prop('checked');
+
+	if(remember_me_checkbox)
+	{
+		var playground_remember = 1;
+	}
+	else
+	{
+		var playground_remember = 0;
+	}
+
+	$.post('playgroundlogin.php?login', { playground_email: playground_email, playground_password: playground_password, playground_remember: playground_remember }, function(data)
+	{
+		if(data == 1)
+		{
+			input_focus();
+			setTimeout(function() { window.location.replace('.'); }, 1000);
+		}
+		else
+		{
+			if(data == '')
+			{
+				$('#login_message_p').html('<span class="error_span">Wrong email and/or password</span>');
+				$('#playground_email_input').val('');
+				$('#playground_password_input').val('');
+				input_focus('#playground_email_input');
+			}
+			else
+			{
+				$('#login_message_p').html(data);
+			}
+		}
+	});
+}
+
 function logout()
 {
 	notify('Logging out...', 300);
 	$.get('login.php?logout', function(data) { setTimeout(function() { window.location.replace('.'); }, 1000); });
 }
+
+
+//Create resource
 
 function create_user()
 {
@@ -307,98 +630,187 @@ function create_user()
 	}
 }
 
-// Reservation
-
-function toggle_reservation_time(id, week, day, time, from)
+function create_playground()
 {
-	if(session_user_is_admin == '1')
+	var playground_name = $('#playground_name_input').val();
+	var playground_email = $('#playground_email_input').val();
+	var playground_password = $('#playground_password_input').val();
+	var playground_password_confirm = $('#playground_password_confirm_input').val();
+	var playground_address = $('#address_input').val();
+	var playground_locality = $('#locality_input').val();
+
+	if($('#playground_secret_code_input').length)
 	{
-		if(week < global_week_number || week == global_week_number && day < global_day_number)
-		{
-			notify('You are reserving back in time. You can do that because you\'re an admin', 4);
-		}
-		else if(week > global_week_number + global_weeks_forward)
-		{
-			notify('You are reserving more than '+global_weeks_forward+' weeks forward in time. You can do that because you\'re an admin', 4);
-		}
-	}
-
-	var user_name = $(id).html();
-
-	if(user_name == '')
-	{
-		$(id).html('Wait...'); 
-
-		$.post('reservation.php?make_reservation', { week: week, day: day, time: time }, function(data) 
-		{
-			if(data == 1)
-			{
-				setTimeout(function() { read_reservation(id, week, day, time); }, 1000);
-			}
-			else
-			{
-				notify(data, 4);
-				setTimeout(function() { read_reservation(id, week, day, time); }, 2000);			
-			}
-		});
+		var playground_secret_code =  $('#playground_secret_code_input').val();
 	}
 	else
 	{
-		if(offclick_event == 'mouseup' || from == 'details')
+		var playground_secret_code = '';
+	}
+
+	if(playground_password != playground_password_confirm)
+	{
+		$('#new_playground_message_p').html('<span class="error_span">Passwords do not match</span>').slideDown('fast');
+		$('#playground_password_input').val('');
+		$('#playground_password_confirm_input').val('');
+		input_focus('#playground_password_input');
+	}
+	else
+	{
+		$('#new_playground_message_p').html('<img src="img/loading.gif" alt="Loading"> Creating playground...').slideDown('fast');
+
+		$.post('playgroundlogin.php?create_playground', { playground_name: playground_name, locality_input:playground_locality , address_input: playground_address ,playground_email: playground_email, playground_password: playground_password, playground_secret_code: playground_secret_code }, function(data)
 		{
-			if(user_name == 'Wait...')
+			if(data == 1)
 			{
-				notify('One click is enough', 4);
-			}
-			else if(user_name == session_user_name || session_user_is_admin == '1')
-			{
-				if(user_name != session_user_name && session_user_is_admin == '1')
-				{
-					var delete_confirm = confirm('This is not your reservation, but because you\'re an admin you can remove other users\' reservations. Are you sure you want to do this?');
-				}
-				else
-				{
-					var delete_confirm = true;
-				}
+				input_focus();
 
-				if(delete_confirm)
+				setTimeout(function()
 				{
-					$(id).html('Wait...');
-
-					$.post('reservation.php?delete_reservation', { week: week, day: day, time: time }, function(data)
-					{
-						if(data == 1)
-						{
-							setTimeout(function() { read_reservation(id, week, day, time); }, 1000);
-						}
-						else
-						{
-							notify(data, 4);
-							setTimeout(function() { read_reservation(id, week, day, time); }, 2000);
-						}
-					});
-				}
+					$('#new_playground_message_p').html('playground created successfully! Logging in... <img src="img/loading.gif" alt="Loading">');
+					setTimeout(function() { window.location.replace('#playgroundlogin'); }, 2000);
+				}, 1000);
 			}
 			else
 			{
-				notify('You can\'t remove other users\' reservations', 2);
+				input_focus();
+				$('#new_playground_message_p').html(data);
 			}
-
-			if($('#reservation_details_div').is(':visible'))
-			{
-				read_reservation_details();
-			}
-		}
+		});
 	}
+}
+
+function create_venue()
+{
+	var venue_id = '';
+	if($('#venue_id_input').length)
+	{
+		venue_id = $('#venue_id_input').val();
+	}
+	var venue_name = $('#venue_name_input').val();
+	var venue_sports_type = $('#venue_sports_type_input').val();
+	var venue_time = $('#venue_time_input').val();
+	var venue_rate = $('#venue_rate_input').val();
+	var venue_location = $('#venue_location_input').val();
+	var venue_contact_number = $('#venue_contact_number_input').val();
+	var venue_day_off = '';
+	$('input:checked').each(function() {
+		venue_day_off = venue_day_off + $(this).val() + ',' ;
+		});
+	
+	$('#new_venue_message_p').html('<img src="img/loading.gif" alt="Loading"> Creating Venue...').slideDown('fast');
+
+	$.post('playgroundlandingpage.php?create_venue', { venue_name: venue_name, venue_sports_type: venue_sports_type, venue_time_slots: venue_time, rate_per_time_slot: venue_rate, venue_location: venue_location, venue_contact_number: venue_contact_number, venue_day_off: venue_day_off }, function(data)
+	{
+		if(data == 1)
+		{
+			input_focus();
+
+			setTimeout(function()
+			{
+				$('#new_venue_message_p').html('venue created successfully!');
+				location.reload();
+			}, 1000);
+		}
+		else
+		{
+			input_focus();
+			$('#new_venue_message_p').html(data);
+		}
+	});
+}
+
+// Reservation
+
+function toggle_temporary_reservation(id , venue_id , week, day , time , price)
+{
+	var booking = {"venue_name": window.sessionStorage.venue_name,"venue_id" : venue_id , "week" : week , "day" : day , "time" : time , "price" : price};
+	
+	var bookings;
+	
+	try 
+	{
+        bookings = JSON.parse(window.localStorage.bookings);
+    } catch (e) {
+        bookings = new Array();
+    }
+	
+	var index = hasDuplicates(bookings,booking);
+	
+	if( index < 0)
+	{	
+		//Add the element , since it was not there already
+		bookings.push(booking);
+		window.localStorage.bookings = JSON.stringify(bookings);
+		
+		$(id).css("background-color" , "yellow");
+		$(id).html("Selected");
+	}else
+	{
+		//Remove the element as it was already there
+		bookings.splice(index , 1);
+		window.localStorage.bookings = JSON.stringify(bookings);
+		
+		$(id).css("background-color" , "white");
+		$(id).html("");
+	}
+	
+	show_hide_booking_div();
+}
+
+function toggle_reservation_time(id, week, day, time, from)
+{
+	venue_id = window.venue_id;
+	
+	if($(id).html() == "" || $(id).html() == "Selected")
+	{
+		//Let it pass
+	}else
+	{
+		$(id).disable();
+		//notify('The slot is already booked',4);
+		return;
+	}
+	
+	if(week < global_week_number || week == global_week_number && day < global_day_number)
+	{
+		notify('You are not allowed to reserve back in time',4);
+		return;
+	}
+	else if(week > global_week_number + global_weeks_forward)
+	{
+		notify('You are not allowed to reserve more than '+global_weeks_forward+' weeks forward in time',4);
+		return;
+	}
+
+	$(id).css("background-color" , "yellow");
+	$.get('venue.php?getattribute', { attribute:'Venue_rate_per_time_slot' ,id: venue_id }, function(data) 
+	{
+		price = data;
+		if( !isNaN(price) )
+		{
+			toggle_temporary_reservation( id , venue_id , week, day , time , price ); 
+		}
+	});			
 }
 
 function read_reservation(id, week, day, time)
 {
-	$.post('reservation.php?read_reservation', { week: week, day: day, time: time }, function(data) { $(id).html(data); });
+	venue_id = window.venue_id;
+	
+	$.post('reservation.php?read_reservation', { venue_id:venue_id, week: week, day: day, time: time }, function(data) { $(id).html(data); });
 }
 
 function read_reservation_details(id, week, day, time)
 {
+	//Todo : show this only if venue belongs to playground
+	//Remove code segment below, to enable this
+	$('div#reservation_details_div').fadeOut('fast');
+	return;
+	//
+	
+	venue_id = window.venue_id;
+			
 	if(typeof id != 'undefined' && $(id).html() != '' && $(id).html() != 'Wait...')
 	{
 		if($('#reservation_details_div').is(':hidden'))
@@ -411,46 +823,11 @@ function read_reservation_details(id, week, day, time)
 			$('#reservation_details_div').css('top', top+'px').css('left', left+'px');
 			$('#reservation_details_div').fadeIn('fast');
 
-			reservation_details_id = id;
-			reservation_details_week = week;
-			reservation_details_day = day;
-			reservation_details_time = time;
-
-			$.post('reservation.php?read_reservation_details', { week: week, day: day, time: time }, function(data)
+			$.post('reservation.php?read_reservation_details', { venue_id: venue_id, week: week, day: day, time: time }, function(data)
 			{
 				setTimeout(function()
 				{
-					if(data == 0)
-					{
-						$('#reservation_details_div').html('This reservation no longer exists. Wait...');
-						
-						setTimeout(function()
-						{
-							if($('#reservation_details_div').is(':visible') && $('#reservation_details_div').html() == 'This reservation no longer exists. Wait...')
-							{
-								read_reservation(reservation_details_id, reservation_details_week, reservation_details_day, reservation_details_time);
-								read_reservation_details();
-							}
-						}, 2000);
-					}
-					else
-					{
-						$('#reservation_details_div').html(data);
-
-						if(offclick_event == 'touchend')
-						{
-							if($(reservation_details_id).html() == session_user_name || session_user_is_admin == '1')
-							{
-								var delete_link_html = '<a href="." onclick="toggle_reservation_time(reservation_details_id, reservation_details_week, reservation_details_day, reservation_details_time, \'details\'); return false">Delete</a> | ';
-							}
-							else
-							{
-								var delete_link_html = '';
-							}
-
-							$('#reservation_details_div').append('<br><br>'+delete_link_html+'<a href="." onclick="read_reservation_details(); return false">Close this</a>');
-						}
-					}
+					$('#reservation_details_div').html(data);
 				}, 500);
 			});
 		}
@@ -655,10 +1032,12 @@ function get_reservation_reminders()
 }
 
 function add_one_reservation()
-{
+{		
+	venue_id = window.venue_id;
+	
 	$('#usage_message_p').html('<img src="img/loading.gif" alt="Loading"> Saving...').slideDown('fast');
 
-	$.post('reservation.php?make_reservation', { week: '0', day: '0', time: '0' }, function(data)
+	$.post('reservation.php?make_reservation', { venue_id: venue_id, week: '0', day: '0', time: '0' }, function(data)
 	{
 		if(data == 1)
 		{
@@ -739,6 +1118,59 @@ function change_user_details()
 		});
 	}
 }
+
+// Venue
+
+function fill_venue_form()
+{
+	if(typeof $(".venue_radio:checked").val() !='undefined')
+	{
+		var delete_confirm = confirm('Are you sure?');
+
+		if(delete_confirm)
+		{
+			var venue_id = $(".venue_radio:checked").val();
+
+			
+		}
+	}
+	else
+	{
+		$('#venue_administration_message_p').html('<span class="error_span">You must pick a venue</span>').slideDown('fast');
+	}
+}
+
+function delete_venue_data(delete_data)
+{
+	if(typeof $(".venue_radio:checked").val() !='undefined')
+	{
+		var delete_confirm = confirm('Are you sure?');
+
+		if(delete_confirm)
+		{
+			var venue_id = $(".venue_radio:checked").val();
+
+			$('#venue_administration_message_p').html('<img src="img/loading.gif" alt="Loading"> Deleting...').slideDown('fast');
+
+			$.post('playgroundlandingpage.php?delete_venue_data', { venue_id: venue_id, delete_data: delete_data }, function(data)
+			{
+				if(data == 1)
+				{
+					location.reload();
+				}
+				else
+				{
+					$('#venue_administration_message_p').html(data);
+				}
+			});
+		}
+	}
+	else
+	{
+		$('#venue_administration_message_p').html('<span class="error_span">You must pick a venue</span>').slideDown('fast');
+	}
+}
+
 
 // UI
 
@@ -833,10 +1265,14 @@ $(document).ready( function()
 	$(document).on('click', '#change_user_permissions_button', function() { change_user_permissions(); });
 	$(document).on('click', '#delete_user_reservations_button', function() { delete_user_data('reservations'); });
 	$(document).on('click', '#delete_user_button', function() { delete_user_data('user'); });
+	$(document).on('click', '#delete_venue_button', function() { delete_venue_data('venue'); });
+	$(document).on('click', '#update_venue_button', function() { fill_venue_form(); });
 	$(document).on('click', '#delete_all_reservations_button', function() { delete_all('reservations'); });
 	$(document).on('click', '#delete_all_users_button', function() { delete_all('users'); });
 	$(document).on('click', '#delete_everything_button', function() { delete_all('everything'); });
 	$(document).on('click', '#add_one_reservation_button', function() { add_one_reservation(); });
+	$(document).on('click', '#clear_booking_button', function() { window.localStorage.bookings = ""; show_hide_booking_div(); location.reload();});
+	
 
 	// Checkboxes
 	$(document).on('click', '#reservation_reminders_checkbox', function() { toggle_reservation_reminder(); });
@@ -844,13 +1280,19 @@ $(document).ready( function()
 	// Forms
 	$(document).on('submit', '#login_form', function() { login(); return false; });
 	$(document).on('submit', '#new_user_form', function() { create_user(); return false; });
+	$(document).on('submit', '#playground_login_form', function() { playgroundlogin(); return false; });
+	$(document).on('submit', '#new_playground_form', function() { create_playground(); return false; });
 	$(document).on('submit', '#system_configuration_form', function() { save_system_configuration(); return false; });
 	$(document).on('submit', '#user_details_form', function() { change_user_details(); return false; });
+	$(document).on('submit', '#new_venue_form', function() { create_venue(); return false; });
+	$(document).on('submit', '#game_search_form', function() { setwindowlocation('game_type_location'); return false; });
 
 	// Links
 	$(document).on('click mouseover', '#user_secret_code_a', function() { div_fadein('#user_secret_code_div'); return false; });
 	$(document).on('click', '#previous_week_a', function() { showweek('previous'); return false; });
 	$(document).on('click', '#next_week_a', function() { showweek('next'); return false; });
+	$(document).on('click', '#venue_check_reservation', function() { showreservations(); return false; });
+	$(document).on('click', '#add_new_venue', function() { $("#new_venue_div").toggle();; return false; });
 
 	// Divisions
 	$(document).on('mouseout', '.reservation_time_cell_div', function() { read_reservation_details(); });
@@ -876,48 +1318,82 @@ $(document).ready( function()
 function hash()
 {
 	var hash = window.location.hash.slice(1);
-
-	if(hash == '')
+	var query = window.location.search.slice(1);
+	
+	if(hash=='' && query != '')
 	{
-		if(typeof session_logged_in != 'undefined')
-		{
-			showreservations();
-		}
-		else
-		{
-			showlogin();
-		}
+		handlequery(query);
+		return;
 	}
-	else
+	
+	switch(hash)
 	{
-		if(hash == 'about')
-		{
-			showabout();
-		}
-		else if(hash == 'new_user')
-		{
+		case '' :
+			showhomepage();
+			break;
+		case 'search' :
+			showsearchpage();
+			break;
+		case 'bookings' :
+			showbookings();
+			break;
+		case 'venue' :
+			showvenue();
+			break;
+		case 'dashboard' :
+			showdashboard();
+			break;
+		case 'userlogin' :
+			showlogin();
+			break;
+		case 'new_user':
 			shownew_user();
-		}
-		else if(hash == 'forgot_password')
-		{
+			break;
+		case 'forgot_password':
 			showforgot_password();
-		}
-		else if(hash == 'help')
-		{
-			showhelp();
-		}
-		else if(hash == 'cp')
-		{
+			break;
+		case 'playgroundlanding' :
+			showplaygroundlandingpage();
+			break;
+		case 'playgroundlogin' :
+			showplaygroundlogin();
+			break;
+		case 'new_playground' :
+			shownew_playground();
+			break;
+		case 'cp' :
 			showcp();
-		}
-		else if(hash == 'logout')
-		{
+			break;
+		case 'logout' :
 			logout();
-		}
-		else
-		{
+			break;
+		case 'about':
+			showabout();
+			break;
+		case 'help':
+			showhelp();
+			break;
+		default:
 			window.location.replace('.');
-		}
+	}
+}
+
+function handlequery(query)
+{
+	query_arr = query.split("="); 
+	query_string = query_arr[0];
+	
+	switch(query_string)
+	{
+		case 'venue' :
+			query_id = query_arr[1];
+			showvenue(query_id);
+			break;
+		case 'search' :
+			showsearch(query_arr[1],query_arr[2]);
+			break;
+		default:
+			window.location.replace('.');
 	}
 }
 
@@ -938,12 +1414,21 @@ $(window).load(function()
 		$.cookie(global_cookie_prefix+'_cookies_test', null);
 
 		hash();
-
+		
 		$(window).bind('hashchange', function ()
 		{
 			hash();
 		});
 	}
+	
+	var images = new Array();
+	images[0] = "img/3522242574_93e1c43174.jpg";
+	images[1] = "img/Soccer_match_-_Rochester_vs_Carolina.JPG";
+	images[2] = "img/Badminton_Semifinal_Pan_2007.jpg";
+	
+	var i = (Math.floor(Math.random()*10))%3;		
+	$.backstretch([images[i]]);
+
 });
 
 // Settings
@@ -952,3 +1437,16 @@ $(document).ready( function()
 {
 	$.ajaxSetup({ cache: false });
 });
+
+//Utility
+
+function hasDuplicates(haystack_array , needle_object) {
+    
+    for (var i = 0; i < haystack_array.length; ++i) {
+        var value = haystack_array[i];
+        if (JSON.stringify(value) === JSON.stringify(needle_object)) {
+            return i;
+        }
+    }
+    return -1;
+}

@@ -34,6 +34,10 @@ if(isset($_SESSION['logged_in']))
 	echo 'session_user_id = \'' . $_SESSION['user_id'] . '\';';
 	echo 'session_user_name = \'' . $_SESSION['user_name'] . '\';';
 	echo 'session_user_is_admin = \'' . $_SESSION['user_is_admin'] . '\';';
+	if(isset($_SESSION['logged_in_as_playground']))
+	{
+		echo 'session_logged_in_as_playground = 1;';
+	}
 }
 
 ?>

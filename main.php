@@ -4,22 +4,12 @@
 
 define('global_project_name', 'phpMyReservation');
 define('global_project_version', '1.0');
-define('global_project_website', 'http://www.olejon.net/code/phpmyreservation/');
+define('global_project_website', 'localhost');
 
 // Include necessary files
 
 include_once('config.php');
-include_once('functions.php');
-
-// MySQL
-
-mysql_connect(global_mysql_server, global_mysql_user, global_mysql_password)or die('<span class="error_span"><u>MySQL error:</u> ' . htmlspecialchars(mysql_error()) . '</span>');
-mysql_select_db(global_mysql_database)or die('<span class="error_span"><u>MySQL error:</u> ' . htmlspecialchars(mysql_error()) . '</span>');
-mysql_set_charset('utf8');
-
-define('global_mysql_configuration_table', 'phpmyreservation_configuration');
-define('global_mysql_users_table', 'phpmyreservation_users');
-define('global_mysql_reservations_table', 'phpmyreservation_reservations');
+include_once('corelogic/_includes.php');
 
 // Cookies
 
@@ -29,10 +19,6 @@ define('global_cookie_prefix', 'phpmyreservation');
 
 session_start();
 
-// Configuration
-
-define('global_price', get_configuration('price'));
-
 // Date
 
 define('global_year', date('Y'));
@@ -40,6 +26,8 @@ define('global_week_number', ltrim(date('W'), '0'));
 define('global_day_number', date('N'));
 define('global_day_name', date('l'));
 define('global_date',date('d-M-y'));
+
+date_default_timezone_set(global_time_zone);
 
 // User agent
 
@@ -80,7 +68,7 @@ if(strlen(global_salt) != 9)
 }
 
 if(isset($_GET['day_number']))
-{
+{	
 	echo date('N');
 }
 elseif(isset($_GET['latest_version']))

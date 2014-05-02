@@ -1,12 +1,14 @@
 <?php
+//Set logging 
+ini_set("log_errors", 1);
 
-### IF YOU ARE GOING TO USE THE CHARACTER ' IN ANY OF THE OPTIONS, ESCAPE IT LIKE THIS: \' ###
+// MongoDB details
+//Live mode details
+$global_mongo_url = parse_url(getenv("MONGOLAB_URI"));
+$global_dbname = str_replace("/", "", $global_mongo_url["path"]);
 
-// MySQL details
-define('global_mysql_server', 'localhost');
-define('global_mysql_user', 'demo');
-define('global_mysql_password', '');
-define('global_mysql_database', 'test');
+//App mode
+$global_app_mode = 'LIVE';
 
 // Salt for password encryption. Changing it is recommended. Use 9 random characters
 // This MUST be 9 characters, and must NOT be changed after users have been created
@@ -49,9 +51,13 @@ define('global_url', 'http://your.server/phpmyreservation/');
 define('global_currency', 'Rs');
 
 // How many weeks forward in time to allow reservations
-define('global_weeks_forward', '2');
+define('global_weeks_forward', '4');
 
-// Possible reservation times. Use the same syntax as below (TimeFrom-TimeTo)
-$global_times = array('09-10', '10-11', '11-12', '12-13', '13-14', '14-15', '15-16', '16-17', '17-18', '18-19', '19-20', '20-21');
+//Global time zone
+define('global_time_zone' , 'Asia/Kolkata');
+
+if (file_exists(dirname(__FILE__) . '/local.config.php')) {
+  include dirname(__FILE__) . '/local.config.php';
+}
 
 ?>

@@ -2,6 +2,9 @@
 
 include_once('main.php');
 
+//If logged in as playground , don't allow
+//if(check_playground_login() == true) { exit; }
+
 if(isset($_GET['login']))
 {
 	$user_email = mysql_real_escape_string($_POST['user_email']);
@@ -96,7 +99,7 @@ else
 
 ?>
 
-	<div class="box_div" id="login_div"><div class="box_top_div">Log in</div><div class="box_body_div">
+	<div class="box_div" id="login_div"><div class="box_top_div">User log in</div><div class="box_body_div">
 
 	<form action="." id="login_form" autocomplete="off"><p>
 
