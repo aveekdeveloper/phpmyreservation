@@ -13,7 +13,8 @@ try{
 }catch(MongoException $e)
 {
   echo "Could not connect to database\n";
-  echo "Mongo url : ".$global_mongo_url;
+  echo "Mongo url : ".$global_mongo_url."\n".$_SERVER["MONGOLAB_URI"]." ";
+  echo "Database : ".$global_dbname."\n";
   error_log( "Could not connect to database" );
   exit;
 }
