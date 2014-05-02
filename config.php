@@ -4,8 +4,9 @@ ini_set("log_errors", 1);
 
 // MongoDB details
 //Live mode details
-$global_mongo_url = parse_url(getenv("MONGOLAB_URI"));
-$global_dbname = str_replace("/", "", $global_mongo_url["path"]);
+$global_mongo_url = getenv("MONGOLAB_URI");
+$parsed_mongo_url = parse_url($global_mongo_url);
+$global_dbname = str_replace("/", "", $parsed_mongo_url["path"]);
 
 //App mode
 $global_app_mode = 'LIVE';
