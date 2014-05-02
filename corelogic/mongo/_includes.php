@@ -7,7 +7,7 @@ try{
 		$connection = new MongoClient($global_mongo_url);
 	}else
 	{
-		$connection = new Mongo($global_mongo_url);
+		$connection = new MongoClient(getenv("MONGOLAB_URI"));
 	}
 	
 }catch(MongoException $e)
