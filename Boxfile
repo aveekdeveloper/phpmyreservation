@@ -1,3 +1,7 @@
 web1: 
   php_extensions: 
     - mongo
+
+web2:
+  name: comingsoon
+  document_root: comingsoon
