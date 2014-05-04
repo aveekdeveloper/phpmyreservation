@@ -8,9 +8,6 @@ $global_mongo_url = getenv("MONGOLAB_URI");
 $parsed_mongo_url = parse_url($global_mongo_url);
 $global_dbname = str_replace("/", "", $parsed_mongo_url["path"]);
 
-$global_mongo_url = 'mongodb://admin:admin@ds043987.mongolab.com:43987/playgroundreservation';
-$global_dbname = 'playgroundreservation';
-
 //App mode
 $global_app_mode = 'LIVE';
 
