@@ -3,5 +3,5 @@ web1:
   document_root: comingsoon
 
 web2:
-	php_extensions: 
-		- mongo
+  php_extensions: 
+    - mongo
