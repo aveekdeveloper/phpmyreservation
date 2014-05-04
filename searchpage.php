@@ -57,7 +57,7 @@ else
 
 <div class="box_div centred_div" id="search_div">
 <div class="search_box_body_div">
-<form action="." id="game_search_form"><p>
+<form action="." id="game_search_form">
 
 <table>
 <tr>

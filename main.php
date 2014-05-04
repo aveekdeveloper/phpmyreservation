@@ -10,6 +10,7 @@ define('global_project_website', 'localhost');
 
 include_once('config.php');
 include_once('corelogic/_includes.php');
+include_once('analyticstracking.php');
 
 // Cookies
 
