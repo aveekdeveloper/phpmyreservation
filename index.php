@@ -32,10 +32,31 @@
 
 <div id="header_div"><?php include('header.php'); ?></div>
 
-<h1><?php //echo global_title; ?></h1>
-<h2><?php //echo global_organization; ?></h2>
+<?php
+$path = ltrim($_SERVER['REQUEST_URI'], '/');    // Trim leading slash(es)
 
-<div id="content_div"></div>
+$elements = explode('/', $path);                // Split path on slashes
+
+if(count($elements) == 0)                       
+{
+	echo '<div id="content_div"></div>';
+}
+else 
+{
+	$elem = array_shift($elements);
+	$elem = array_shift($elements);
+
+	switch($elem)             // Pop off first item and switch
+	{
+		case '':
+			//echo "I am here";
+			echo '<div id="content_div"></div>';
+			break;
+		default:
+			echo ShowPlayground($elem);
+	}
+}
+?>
 
 <div id="booking_div">
 	<div class="booking_div_header">
